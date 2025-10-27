@@ -29,12 +29,12 @@
       {
         "key": "on_prem",
         "label": "Existing on-prem database",
-        "deltas": { "time_weeks": 4, "cost_k": -10, "quality": 6 }
+        "deltas": { "time_weeks": 4, "cost_k": -10, "quality": -2 }
       },
       {
         "key": "snowflake",
         "label": "Cloud DW (Snowflake)",
-        "deltas": { "time_weeks": -1, "cost_k": 5, "quality": 14 }
+        "deltas": { "time_weeks": 1, "cost_k": 5, "quality": 14 }
       }
     ]
   },
