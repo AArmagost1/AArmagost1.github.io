@@ -112,7 +112,7 @@
       {
         "key": "full",
         "label": "End-to-end observability + cost monitoring",
-        "deltas": { "time_weeks": 2, "cost_k": 20, "quality": 14 }
+        "deltas": { "time_weeks": 2, "cost_k": 40, "quality": 14 }
       }
     ]
   }
