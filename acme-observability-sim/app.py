@@ -13,7 +13,9 @@ import streamlit as st
 APP_TITLE = "Acme Retail: Architecture Trade-off Simulation"
 
 # Baselines (Time & Cost accumulate from here; Quality is a running score starting at 0)
-BASELINE = {"time_weeks": 12.0, "cost_k": 200.0, "quality": 0.0}
+# Baselines (all cumulative now)
+BASELINE = {"time_weeks": 0.0, "cost_k": 0.0, "quality": 0.0}
+
 
 # Targets for pass/fail & scoring
 TARGETS = {

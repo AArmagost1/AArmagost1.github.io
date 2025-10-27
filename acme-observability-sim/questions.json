@@ -7,16 +7,21 @@
       {
         "key": "batch_csv",
         "label": "Batch nightly CSV drops",
-        "deltas": { "time_weeks": -2, "cost_k": -40, "quality": 3 }
+        "deltas": { "time_weeks": 1, "cost_k": -40, "quality": 3 }
       },
       {
         "key": "partner_apis",
-        "label": "Direct partner API integrations (daily sync)",
-        "deltas": { "time_weeks": 1, "cost_k": 20, "quality": 8 }
+        "label": "Custom API integrations (daily sync)",
+        "deltas": { "time_weeks": 2, "cost_k": 20, "quality": 8 }
+      },
+        {
+        "key": "automated_tools",
+        "label": "Automated ETL Tooling (Fivetran/Matillion)",
+        "deltas": { "time_weeks": 1, "cost_k": 20, "quality": 12 }
       },
       {
         "key": "streaming",
-        "label": "Real-time streaming (Kafka/Event Hub)",
+        "label": "Custom Data Pipelins foor Real-time streaming (Kafka/Event Hub)",
         "deltas": { "time_weeks": 3, "cost_k": 50, "quality": 14 }
       }
     ]
