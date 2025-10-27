@@ -7,17 +7,17 @@
       {
         "key": "batch_csv",
         "label": "Batch nightly CSV drops",
-        "deltas": { "time_weeks": 1, "cost_k": -40, "quality": 3 }
+        "deltas": { "time_weeks": 1, "cost_k": 10, "quality": 3 }
       },
       {
         "key": "partner_apis",
         "label": "Custom API integrations (daily sync)",
-        "deltas": { "time_weeks": 2, "cost_k": 20, "quality": 8 }
+        "deltas": { "time_weeks": 2, "cost_k": 30, "quality": 8 }
       },
         {
         "key": "automated_tools",
         "label": "Automated ETL Tooling (Fivetran/Matillion)",
-        "deltas": { "time_weeks": 1, "cost_k": 20, "quality": 12 }
+        "deltas": { "time_weeks": 1, "cost_k": 35, "quality": 12 }
       },
       {
         "key": "streaming",
@@ -34,12 +34,12 @@
       {
         "key": "on_prem",
         "label": "Existing on-prem database",
-        "deltas": { "time_weeks": 4, "cost_k": -10, "quality": -2 }
+        "deltas": { "time_weeks": 4, "cost_k": 25, "quality": 0 }
       },
       {
         "key": "snowflake",
         "label": "Cloud DW (Snowflake)",
-        "deltas": { "time_weeks": 1, "cost_k": 5, "quality": 14 }
+        "deltas": { "time_weeks": 2, "cost_k": 50, "quality": 14 }
       }
     ]
   },
@@ -51,17 +51,17 @@
       {
         "key": "internal_only",
         "label": "Internal dashboards only",
-        "deltas": { "time_weeks": -2, "cost_k": 5, "quality": 8 }
+        "deltas": { "time_weeks": 1, "cost_k": 15, "quality": 8 }
       },
        {
         "key": "api_only",
         "label": "Customer API to CDW",
-        "deltas": { "time_weeks": 1, "cost_k": 5, "quality": 12 }
+        "deltas": { "time_weeks": 2, "cost_k": 28, "quality": 12 }
       },
       {
         "key": "embedded",
         "label": "Embedded customer-facing dashboards",
-        "deltas": { "time_weeks": 1, "cost_k": 20, "quality": 14 }
+        "deltas": { "time_weeks": 2, "cost_k": 50, "quality": 14 }
       }
     ]
   },
@@ -73,12 +73,12 @@
       {
         "key": "minimal",
         "label": "Minimal controls to move fast",
-        "deltas": { "time_weeks": -1, "cost_k": -10, "quality": -10 }
+        "deltas": { "time_weeks": 1, "cost_k": 20, "quality": 7 }
       },
       {
         "key": "central_rbac",
         "label": "Centralized RBAC + masking policies",
-        "deltas": { "time_weeks": 1, "cost_k": 10, "quality": 14 }
+        "deltas": { "time_weeks": 2, "cost_k": 40, "quality": 14 }
       }
     ]
   },
@@ -90,12 +90,12 @@
       {
         "key": "sql_sprawl",
         "label": "Ad-hoc SQL scripts per team",
-        "deltas": { "time_weeks": -1, "cost_k": -5, "quality": -4 }
+        "deltas": { "time_weeks": 0, "cost_k": 20, "quality": 1 }
       },
       {
         "key": "dbt",
         "label": "dbt with tests, CI, and docs",
-        "deltas": { "time_weeks": 1, "cost_k": 8, "quality": 14 }
+        "deltas": { "time_weeks": 2, "cost_k": 40, "quality": 14 }
       }
     ]
   },
@@ -107,12 +107,12 @@
       {
         "key": "basic",
         "label": "Basic pipeline alerts",
-        "deltas": { "time_weeks": 0, "cost_k": -5, "quality": 4 }
+        "deltas": { "time_weeks": 0, "cost_k": 20, "quality": 4 }
       },
       {
         "key": "full",
         "label": "End-to-end observability + cost monitoring",
-        "deltas": { "time_weeks": 1, "cost_k": 12, "quality": 14 }
+        "deltas": { "time_weeks": 2, "cost_k": 20, "quality": 14 }
       }
     ]
   }
