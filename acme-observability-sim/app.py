@@ -20,10 +20,94 @@ MIN_MAX = {
 # ----------------------------
 # Utilities
 # ----------------------------
+from pathlib import Path
+import json
+import streamlit as st
+
+DEFAULT_QUESTIONS = [
+    {
+        "id": "ingest",
+        "label": "Data Source Strategy",
+        "prompt": "How will you ingest partner data into the platform?",
+        "options": [
+            {"key": "batch_csv", "label": "Batch nightly CSV drops",
+             "deltas": {"time_weeks": -2, "cost_k": -40, "quality": -8}},
+            {"key": "partner_apis", "label": "Direct partner API integrations (daily sync)",
+             "deltas": {"time_weeks": 1, "cost_k": 20, "quality": 8}},
+            {"key": "streaming", "label": "Real-time streaming (Kafka/Event Hub)",
+             "deltas": {"time_weeks": 3, "cost_k": 50, "quality": 14}}
+        ]
+    },
+    {
+        "id": "warehouse",
+        "label": "Analytics Warehouse",
+        "prompt": "Where will you store & analyze data?",
+        "options": [
+            {"key": "on_prem", "label": "Existing on-prem database",
+             "deltas": {"time_weeks": 4, "cost_k": 10, "quality": -10}},
+            {"key": "snowflake", "label": "Cloud DW (Snowflake)",
+             "deltas": {"time_weeks": -1, "cost_k": 5, "quality": 12}}
+        ]
+    },
+    {
+        "id": "delivery",
+        "label": "Analytics Delivery",
+        "prompt": "How will customers consume analytics?",
+        "options": [
+            {"key": "internal_only", "label": "Internal dashboards only",
+             "deltas": {"time_weeks": -2, "cost_k": -15, "quality": -12}},
+            {"key": "embedded", "label": "Embedded customer-facing dashboards",
+             "deltas": {"time_weeks": 1, "cost_k": 20, "quality": 10}}
+        ]
+    },
+    {
+        "id": "governance",
+        "label": "Governance & Security",
+        "prompt": "Pick your initial governance approach.",
+        "options": [
+            {"key": "minimal", "label": "Minimal controls to move fast",
+             "deltas": {"time_weeks": -1, "cost_k": -10, "quality": -10}},
+            {"key": "central_rbac", "label": "Centralized RBAC + masking policies",
+             "deltas": {"time_weeks": 1, "cost_k": 10, "quality": 12}}
+        ]
+    },
+    {
+        "id": "modeling",
+        "label": "Transformations & Modeling",
+        "prompt": "How will you transform and model data?",
+        "options": [
+            {"key": "sql_sprawl", "label": "Ad-hoc SQL scripts per team",
+             "deltas": {"time_weeks": -1, "cost_k": -5, "quality": -8}},
+            {"key": "dbt", "label": "dbt with tests, CI, and docs",
+             "deltas": {"time_weeks": 1, "cost_k": 8, "quality": 14}}
+        ]
+    },
+    {
+        "id": "sla",
+        "label": "SLAs & Observability",
+        "prompt": "What level of observability will you start with?",
+        "options": [
+            {"key": "basic", "label": "Basic pipeline alerts",
+             "deltas": {"time_weeks": 0, "cost_k": -5, "quality": 4}},
+            {"key": "full", "label": "End-to-end observability + cost monitoring",
+             "deltas": {"time_weeks": 1, "cost_k": 12, "quality": 12}}
+        ]
+    }
+]
+
 @st.cache_data
-def load_questions(path: str = "questions.json") -> List[Dict[str, Any]]:
-    with open(path, "r") as f:
-        return json.load(f)
+def load_questions(path: str | None = None):
+    """
+    Load questions from a file next to app.py; if not found, use DEFAULT_QUESTIONS.
+    """
+    try:
+        base_dir = Path(__file__).parent  # directory where app.py lives
+        q_path = Path(path) if path else (base_dir / "questions.json")
+        with q_path.open("r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        st.warning(f"Could not load questions.json ({e}). Using built-in defaults.")
+        return DEFAULT_QUESTIONS
 
 def apply_deltas(selections: Dict[str, str], questions: List[Dict[str, Any]]) -> Dict[str, float]:
     result = BASELINE.copy()
