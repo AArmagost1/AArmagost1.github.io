@@ -48,6 +48,8 @@ DEFAULT_QUESTIONS = [
         "label": "Data Source Strategy",
         "prompt": "How will you ingest partner data into the platform?",
         "options": [
+            {"key": "select_option", "label": "- Select an option -",
+             "deltas": {"time_weeks": 0, "cost_k": 0, "quality": 0}},
             {"key": "batch_csv", "label": "Batch nightly CSV drops",
              "deltas": {"time_weeks": -2, "cost_k": 10, "quality": 8}},
             {"key": "partner_apis", "label": "Direct partner API integrations (daily sync)",
