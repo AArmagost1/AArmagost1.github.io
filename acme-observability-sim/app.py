@@ -342,12 +342,8 @@ choice_idx = st.radio(
 
 # Save the selection
 selected_key = keys[choice_idx]
-# Only update if changed, to avoid unnecessary churn
-if st.session_state.selections.get(q["id"]) != selected_key:
-    st.session_state.selections[q["id"]] = selected_key
-    # If results are already showing, keep them visible but recompute later sections
-    # (No need to toggle show_results here — we want dynamic recompute)
-    st.experimental_rerun()
+st.session_state.selections[q["id"]] = selected_key
+
 
 # Navigation buttons
 col_back, col_next, col_spacer = st.columns([1, 1, 2])
