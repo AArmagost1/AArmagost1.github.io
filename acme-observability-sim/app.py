@@ -12,7 +12,7 @@ import streamlit as st
 # =========================
 APP_TITLE = "Acme Retail: Architecture Trade-off Simulation"
 
-# Baselines (Time & Cost baseline from which deltas accumulate; Quality starts at 0 for a true running score)
+# Baselines (Time & Cost accumulate from here; Quality is a running score starting at 0)
 BASELINE = {"time_weeks": 12.0, "cost_k": 200.0, "quality": 0.0}
 
 # Targets for pass/fail & scoring
@@ -29,7 +29,7 @@ WEIGHTS = {
     "quality": 0.40
 }
 
-# For charts scaling (cosmetic)
+# Chart scaling (cosmetic)
 MIN_MAX = {
     "time_weeks": (2, 30),
     "cost_k": (50, 400),
@@ -38,9 +38,9 @@ MIN_MAX = {
 
 # =========================
 # Default questions (used if questions.json not found)
-# Q1 deltas are set to match your examples EXACTLY:
-#  - Batch nightly CSV → Time 10 (12-2), Cost 210 (200+10), Quality 8 (0+8)
-#  - Streaming → Time 15 (12+3), Cost 300 (200+100), Quality 14 (0+14)
+# Q1 deltas align with your examples:
+# - Batch nightly CSV → Time 10 (12-2), Cost 210 (200+10), Quality 8 (0+8)
+# - Streaming → Time 15 (12+3), Cost 300 (200+100), Quality 14 (0+14)
 # =========================
 DEFAULT_QUESTIONS = [
     {
@@ -137,6 +137,7 @@ def apply_deltas(selections: Dict[str, str], questions: List[Dict[str, Any]]) ->
     """
     Apply selected option deltas cumulatively to the baseline.
     Quality is a running score starting at 0.
+    Only answered questions contribute.
     """
     result = BASELINE.copy()
     for q in questions:
@@ -180,7 +181,7 @@ def per_metric_score(key: str, value: float) -> float:
     """
     tgt = TARGETS[key]
     if key in ("time_weeks", "cost_k"):
-        if value <= 0:  # avoid div by zero
+        if value <= 0:
             return 100.0
         return float(min(100.0, max(0.0, 100.0 * tgt / value)))
     elif key == "quality":
@@ -269,7 +270,7 @@ if "selections" not in st.session_state:
 if "show_results" not in st.session_state:
     st.session_state.show_results = False
 
-# Sidebar: Live Outcome (instant updates)
+# Sidebar: Live Outcome (shows baseline until a selection is made)
 with st.sidebar:
     st.header("Live Outcome")
     live = apply_deltas(st.session_state.selections, questions)
@@ -283,7 +284,7 @@ with st.sidebar:
         st.session_state.show_results = False
         st.rerun()
 
-# Progress
+# Progress (simple: position through questions)
 st.progress((st.session_state.idx + 1) / total_qs)
 
 # Current question
@@ -291,28 +292,36 @@ q = questions[st.session_state.idx]
 st.subheader(f"{st.session_state.idx + 1}/{total_qs} — {q['label']}")
 st.write(q["prompt"])
 
-keys = [opt["key"] for opt in q["options"]]
-labels = [opt["label"] for opt in q["options"]]
+# Build select options with a placeholder (no default selection)
+opt_pairs = [(None, "— Select an option —")] + [(opt["key"], opt["label"]) for opt in q["options"]]
 
-# default index from previous selection if present
-if q["id"] in st.session_state.selections:
-    try:
-        default_index = keys.index(st.session_state.selections[q["id"]])
-    except ValueError:
-        default_index = 0
-else:
-    default_index = 0
+# Determine currently saved selection for this question
+current_key = st.session_state.selections.get(q["id"], None)
 
-choice_idx = st.radio(
+# Map current key to index in opt_pairs
+def index_for_key(k, pairs):
+    for i, (key, _) in enumerate(pairs):
+        if key == k:
+            return i
+    return 0  # placeholder
+
+selected_idx = st.selectbox(
     "Select one:",
-    options=list(range(len(keys))),
-    format_func=lambda i: labels[i],
-    index=default_index,
-    key=f"radio_{q['id']}"
+    options=list(range(len(opt_pairs))),
+    format_func=lambda i: opt_pairs[i][1],
+    index=index_for_key(current_key, opt_pairs),
+    key=f"select_{q['id']}"
 )
 
-# Save selection (Streamlit will rerun automatically on change)
-st.session_state.selections[q["id"]] = keys[choice_idx]
+selected_key = opt_pairs[selected_idx][0]  # None if placeholder
+
+# Persist only real selections (no default)
+if selected_key is None:
+    # If user moved back to placeholder, remove selection so Live Outcome returns to prior state
+    if q["id"] in st.session_state.selections:
+        del st.session_state.selections[q["id"]]
+else:
+    st.session_state.selections[q["id"]] = selected_key
 
 # Nav buttons
 col_back, col_next, col_spacer = st.columns([1, 1, 2])
@@ -332,7 +341,7 @@ if st.session_state.idx == total_qs - 1 and not st.session_state.show_results:
         st.session_state.show_results = True
         st.rerun()
 
-# Results (after Finish)
+# Results (after Finish) — updates dynamically as selections change
 if st.session_state.show_results:
     st.divider()
     st.subheader("Your Outcome")
@@ -373,7 +382,7 @@ if st.session_state.show_results:
 st.divider()
 with st.expander("Facilitation Notes (hidden during demo)"):
     st.write("""
-- Complete choices in ~10–12 minutes, then discuss trade-offs & mitigations.
-- Propose phased adoption to improve Time/Cost without sacrificing Quality.
-- Tie decisions to architecture patterns (dbt tests, observability, governance).
+- No default selections — Live Outcome remains at baseline until each choice is made.
+- Encourage toggling options to see trade-offs in real time.
+- After 'Finish', discuss mitigations and phased architecture to move toward targets.
 """)
