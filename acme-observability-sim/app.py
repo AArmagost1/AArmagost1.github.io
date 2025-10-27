@@ -48,8 +48,6 @@ DEFAULT_QUESTIONS = [
         "label": "Data Source Strategy",
         "prompt": "How will you ingest partner data into the platform?",
         "options": [
-            {"key": "select_option", "label": "- Select an option -",
-             "deltas": {"time_weeks": 0, "cost_k": 0, "quality": 0}},
             {"key": "batch_csv", "label": "Batch nightly CSV drops",
              "deltas": {"time_weeks": -2, "cost_k": 10, "quality": 8}},
             {"key": "partner_apis", "label": "Direct partner API integrations (daily sync)",
@@ -272,7 +270,77 @@ if "selections" not in st.session_state:
 if "show_results" not in st.session_state:
     st.session_state.show_results = False
 
-# Sidebar: Live Outcome (shows baseline until a selection is made)
+# Progress
+st.progress((st.session_state.idx + 1) / total_qs)
+
+# Current question content FIRST (so state updates before sidebar is computed)
+q = questions[st.session_state.idx]
+st.subheader(f"{st.session_state.idx + 1}/{total_qs} — {q['label']}")
+st.write(q["prompt"])
+
+# Build options with placeholder — no default selection
+opt_pairs = [(None, "— Select an option —")] + [(opt["key"], opt["label"]) for opt in q["options"]]
+
+# Resolve current selection (if any)
+current_key = st.session_state.selections.get(q["id"], None)
+
+def index_for_key(k, pairs):
+    for i, (key, _) in enumerate(pairs):
+        if key == k:
+            return i
+    return 0  # placeholder
+
+# Use index=None behavior if Streamlit supports it; otherwise compute index
+try:
+    selected_idx = st.selectbox(
+        "Select one:",
+        options=list(range(len(opt_pairs))),
+        format_func=lambda i: opt_pairs[i][1],
+        index=(None if current_key is None else index_for_key(current_key, opt_pairs)),
+        key=f"select_{q['id']}"
+    )
+except TypeError:
+    # Fallback for older Streamlit (index cannot be None)
+    selected_idx = st.selectbox(
+        "Select one:",
+        options=list(range(len(opt_pairs))),
+        format_func=lambda i: opt_pairs[i][1],
+        index=index_for_key(current_key, opt_pairs),
+        key=f"select_{q['id']}"
+    )
+
+selected_key = opt_pairs[selected_idx][0] if selected_idx is not None else None
+
+# Persist only real selections (no placeholder)
+if selected_key is None:
+    if q["id"] in st.session_state.selections:
+        del st.session_state.selections[q["id"]]
+else:
+    st.session_state.selections[q["id"]] = selected_key
+
+# Navigation buttons
+col_back, col_next, col_spacer = st.columns([1, 1, 2])
+with col_back:
+    if st.button("← Back", disabled=(st.session_state.idx == 0)):
+        st.session_state.idx -= 1
+        st.rerun()
+with col_next:
+    # Optional: require selection before proceeding
+    disable_next = (st.session_state.idx < total_qs - 1) and (q["id"] not in st.session_state.selections)
+    if st.button("Next →", disabled=disable_next):
+        st.session_state.idx += 1
+        st.rerun()
+
+# Finish gate on last question
+if st.session_state.idx == total_qs - 1 and not st.session_state.show_results:
+    st.divider()
+    # Optional: require final selection before Finish
+    can_finish = (q["id"] in st.session_state.selections)
+    if st.button("Finish & Show Outcome", type="primary", disabled=not can_finish):
+        st.session_state.show_results = True
+        st.rerun()
+
+# === Sidebar AFTER selection is stored so it reflects the latest state ===
 with st.sidebar:
     st.header("Live Outcome")
     live = apply_deltas(st.session_state.selections, questions)
@@ -284,63 +352,6 @@ with st.sidebar:
         st.session_state.selections = {}
         st.session_state.idx = 0
         st.session_state.show_results = False
-        st.rerun()
-
-# Progress (simple: position through questions)
-st.progress((st.session_state.idx + 1) / total_qs)
-
-# Current question
-q = questions[st.session_state.idx]
-st.subheader(f"{st.session_state.idx + 1}/{total_qs} — {q['label']}")
-st.write(q["prompt"])
-
-# Build select options with a placeholder (no default selection)
-opt_pairs = [(None, "— Select an option —")] + [(opt["key"], opt["label"]) for opt in q["options"]]
-
-# Determine currently saved selection for this question
-current_key = st.session_state.selections.get(q["id"], None)
-
-# Map current key to index in opt_pairs
-def index_for_key(k, pairs):
-    for i, (key, _) in enumerate(pairs):
-        if key == k:
-            return i
-    return 0  # placeholder
-
-selected_idx = st.selectbox(
-    "Select one:",
-    options=list(range(len(opt_pairs))),
-    format_func=lambda i: opt_pairs[i][1],
-    index=index_for_key(current_key, opt_pairs),
-    key=f"select_{q['id']}"
-)
-
-selected_key = opt_pairs[selected_idx][0]  # None if placeholder
-
-# Persist only real selections (no default)
-if selected_key is None:
-    # If user moved back to placeholder, remove selection so Live Outcome returns to prior state
-    if q["id"] in st.session_state.selections:
-        del st.session_state.selections[q["id"]]
-else:
-    st.session_state.selections[q["id"]] = selected_key
-
-# Nav buttons
-col_back, col_next, col_spacer = st.columns([1, 1, 2])
-with col_back:
-    if st.button("← Back", disabled=(st.session_state.idx == 0)):
-        st.session_state.idx -= 1
-        st.rerun()
-with col_next:
-    if st.button("Next →", disabled=(st.session_state.idx >= total_qs - 1)):
-        st.session_state.idx += 1
-        st.rerun()
-
-# Finish gate on last question
-if st.session_state.idx == total_qs - 1 and not st.session_state.show_results:
-    st.divider()
-    if st.button("Finish & Show Outcome", type="primary"):
-        st.session_state.show_results = True
         st.rerun()
 
 # Results (after Finish) — updates dynamically as selections change
@@ -385,6 +396,7 @@ st.divider()
 with st.expander("Facilitation Notes (hidden during demo)"):
     st.write("""
 - No default selections — Live Outcome remains at baseline until each choice is made.
+- Sidebar updates immediately because it's rendered after the selection logic.
 - Encourage toggling options to see trade-offs in real time.
-- After 'Finish', discuss mitigations and phased architecture to move toward targets.
+- After 'Finish', discuss mitigations and a phased architecture to move toward targets.
 """)
